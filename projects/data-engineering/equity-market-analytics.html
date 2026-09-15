@@ -1,0 +1,80 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Equity Market Analytics Platform | Bhavya Satija</title>
+<meta name="description" content="A production-style Bronze to Silver to Gold medallion pipeline covering 503 S&P 500 equities over 20 years, built on PySpark and Databricks, feeding a 5-page Power BI report.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,600;1,500;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<div id="scrollProgress"></div>
+<header class="nav-wrap"><nav class="nav container"><a class="brand" href="../../index.html">Bhavya Satija<span>.</span></a><div class="nav-links"><a href="../../index.html#projects">Coverage</a><a href="../../index.html#about">Background</a><a href="../../index.html#skills">Toolkit</a><a href="../../index.html#contact">Contact</a></div><a class="nav-cta" href="https://github.com/BhavyaSatija54" target="_blank">GitHub ↗</a></nav></header>
+<main>
+
+<section class="hero container">
+<div class="eyebrow">Data Engineering &amp; Analytics Platforms</div>
+<h1 style="font-size:clamp(36px,5.4vw,64px);letter-spacing:-2px;margin:16px 0">Equity Market <em>Analytics Platform</em></h1>
+<div class="hero-role">A medallion pipeline over 503 S&P 500 equities and 20 years of daily data, built the way a data platform team actually ships one</div>
+<p class="hero-copy">Most portfolio dashboards start from a clean CSV. This project starts from raw Yahoo Finance data for the full S&amp;P 500 and 20 years of history, and builds the actual pipeline underneath it: schema-enforced ingestion, a named and configurable data quality engine, feature engineering in PySpark, a rule-based market-scenario classifier, and a 5-page Power BI report sitting on top of a properly modelled gold layer.</p>
+<div class="hero-actions"><a class="button primary" href="https://github.com/BhavyaSatija54/Equity_Market_Analysis_Dashboard" target="_blank">GitHub repository ↗</a><a class="button secondary" href="../../index.html#projects">← Back to coverage</a></div>
+</section>
+
+<div class="container">
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">01 / Snapshot</div><h2>Scale and scope</h2></div>
+<div class="snapshot-table">
+<div class="snap-row"><span>Universe</span><b>503 S&amp;P 500 constituents, full daily OHLCV history</b></div>
+<div class="snap-row"><span>History</span><b>20 years, 2004 to 2024, roughly 2.5 million OHLCV rows</b></div>
+<div class="snap-row"><span>Compute</span><b>PySpark and SparkSQL on a 4-node Databricks cluster</b></div>
+<div class="snap-row"><span>Runtime</span><b>~9 minutes end to end, roughly 50% faster than a single-machine pandas equivalent</b></div>
+<div class="snap-row"><span>Feature set</span><b>35+ engineered features per equity: SMA/EMA, RSI-14, MACD, Bollinger Bands, rolling volatility, momentum z-score</b></div>
+<div class="snap-row"><span>Delivery</span><b>5-page Power BI report (30+ DAX measures) plus a standalone 5-page web dashboard</b></div>
+<div class="snap-row"><span>Testing</span><b>35 passing unit tests, CI pipeline, Dockerised deployment</b></div>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">02 / Architecture</div><h2>Bronze, Silver, Gold, built with intent</h2></div>
+<div class="case-copy">
+<p>The Bronze layer does schema enforcement, deduplication, and lineage tracking on the raw OHLCV and fundamentals data, partitioned by sector. Every layer runs a purpose-built data quality engine before writing, checking null rates, OHLC consistency, and a circuit breaker on any single-day price move above 50%, aborting the run rather than silently propagating bad data downstream. The Silver layer cleans and conforms that data, calculating returns and running the full feature engineering pass, filtering to instruments with at least 252 trading days of liquidity so a partial-year listing does not distort a rolling calculation.</p>
+<p>The Gold layer is where the pipeline earns the word production-grade rather than analysis script. It is business-aggregated and BI-optimised: a fact table at the date-by-ticker grain, partitioned by year and quarter specifically for DirectQuery pruning in Power BI, alongside pre-aggregated scenario-performance tables and proper dimension tables for date, ticker, and sector-scenario. That separation of a granular fact table from pre-aggregated marts is exactly the modelling discipline a BI team needs to keep a report fast as the underlying data grows.</p>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">03 / Data Quality Framework</div><h2>Checks that actually abort a bad run</h2></div>
+<div class="exhibit">
+<table class="fin-table">
+<tr><th>Check</th><th>Threshold</th><th>Action</th></tr>
+<tr><td>Null rate per column</td><td>&gt; 1%</td><td>Abort (strict mode)</td></tr>
+<tr><td>OHLC consistency</td><td>high ≥ close ≥ low</td><td>Abort on failure</td></tr>
+<tr><td>Price move circuit breaker</td><td>&gt; 50% one-day move</td><td>Warn</td></tr>
+<tr><td>Duplicate (ticker, date)</td><td>any occurrence</td><td>Abort</td></tr>
+<tr><td>Data freshness</td><td>&gt; 48 hours stale</td><td>Warn, log only</td></tr>
+</table>
+</div>
+<p class="case-lede">Quality scores from 0 to 100 are logged as structured JSON at every stage, designed to feed a monitoring stack like ELK or Datadog rather than sitting in a notebook cell no one revisits.</p>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">04 / Scenario Engine</div><h2>A rule-based market regime classifier</h2></div>
+<div class="exhibit">
+<table class="fin-table">
+<tr><th>Regime</th><th>Priority</th><th>Trigger</th></tr>
+<tr><td>Bear</td><td>1</td><td>S&amp;P 500 drawdown ≤ −20%, VIX ≥ 30</td></tr>
+<tr><td>Volatile</td><td>2</td><td>VIX ≥ 25, realised volatility ≥ 22%</td></tr>
+<tr><td>Bull</td><td>3</td><td>Index near highs, VIX ≤ 18, momentum &gt; 3%</td></tr>
+<tr><td>Recovery</td><td>4</td><td>Momentum turning positive after a drawdown</td></tr>
+<tr><td>Normal</td><td>5, default</td><td>None of the above</td></tr>
+</table>
+</div>
+<p class="case-lede">Priority-resolved and defined in a YAML config rather than hard-coded, so a portfolio manager can adjust what counts as a bear market without touching the pipeline code, a small design choice that matters a great deal for how usable a tool actually is by non-engineers.</p>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">05 / What This Demonstrates</div><h2>The difference between a dashboard and a data platform</h2></div>
+<div class="case-copy"><p>A dashboard that reads a static CSV is a visualisation exercise. A pipeline that ingests raw data at scale, enforces its own quality gates, engineers features in a distributed compute engine, and models a gold layer specifically for BI performance is a data engineering deliverable, and it is judged on runtime, idempotency, and failure handling as much as on how the final chart looks. That is the standard this platform is built to.</p></div>
+<a class="button secondary" href="../../index.html#projects">← Back to coverage</a>
+</section>
+
+</div>
+</main>
+<footer class="footer container"><span>© <span id="year"></span> Bhavya Satija</span><span>Finance × Quant × Technology</span></footer>
+<script src="../../script.js"></script></body></html>

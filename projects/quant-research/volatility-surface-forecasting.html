@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volatility Surface Forecasting & Options Strategy | Bhavya Satija</title>
+<meta name="description" content="LSTM-Attention and ConvLSTM models forecasting the SPX implied volatility surface, wired into a delta-hedged options strategy backtested from 2004 to 2022.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,600;1,500;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<div id="scrollProgress"></div>
+<header class="nav-wrap"><nav class="nav container"><a class="brand" href="../../index.html">Bhavya Satija<span>.</span></a><div class="nav-links"><a href="../../index.html#projects">Coverage</a><a href="../../index.html#about">Background</a><a href="../../index.html#skills">Toolkit</a><a href="../../index.html#contact">Contact</a></div><a class="nav-cta" href="https://github.com/BhavyaSatija54" target="_blank">GitHub ↗</a></nav></header>
+<main>
+
+<section class="hero container">
+<div class="eyebrow">Derivatives &amp; Machine Learning</div>
+<h1 style="font-size:clamp(36px,5.4vw,64px);letter-spacing:-2px;margin:16px 0">Forecasting the <em>volatility surface</em></h1>
+<div class="hero-role">Deep learning models tested the way a derivatives desk actually cares about: does it make money after hedging and costs</div>
+<p class="hero-copy">Most implied volatility research stops at forecast accuracy. This project pushes further, training an LSTM with attention and a ConvLSTM on 26 years of daily SPX options data to forecast the full implied volatility surface, then wiring those forecasts directly into a delta-hedged short strangle strategy with real transaction costs, to test whether a more accurate surface forecast actually translates into a better trading outcome.</p>
+<div class="hero-actions"><a class="button primary" href="https://github.com/BhavyaSatija54/Equity-Deep-Learning-for-Option-Volatility-Forecasting" target="_blank">GitHub repository ↗</a><a class="button secondary" href="../../index.html#projects">← Back to coverage</a></div>
+</section>
+
+<div class="container">
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">01 / Snapshot</div><h2>The build</h2></div>
+<div class="snapshot-table">
+<div class="snap-row"><span>Data</span><b>26 years of daily SPX options data, 1996 to 2022</b></div>
+<div class="snap-row"><span>Surface grid</span><b>10 maturities × 18 deltas, no-arbitrage-aware construction</b></div>
+<div class="snap-row"><span>Models</span><b>LSTM with additive attention, and ConvLSTM treating the surface as a spatio-temporal grid</b></div>
+<div class="snap-row"><span>Loss function</span><b>MAE + RMSE + QLIKE, with a no-arbitrage penalty term</b></div>
+<div class="snap-row"><span>Trading strategy</span><b>30-day, ±10Δ short strangle, daily delta-hedged, VIX-based entry gate, stop-loss</b></div>
+<div class="snap-row"><span>Backtest window</span><b>2004 to 2022, common across all three strategies compared</b></div>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">02 / Why Two Architectures</div><h2>Sequence memory versus spatial coherence</h2></div>
+<div class="case-copy">
+<p>The LSTM with attention learns to weight historically informative time windows, which makes it strong at picking up regime shifts, a sudden change in how the market is pricing volatility. The ConvLSTM instead treats the volatility surface as an evolving spatio-temporal grid, convolving across neighbouring deltas and maturities to preserve cross-maturity coherence, so a forecast for the 30-day tenor stays consistent with the forecast for the 60-day tenor next to it, rather than each maturity being predicted independently and potentially producing an internally inconsistent, arbitrageable surface.</p>
+<p>That structural consistency turns out to matter more than pointwise accuracy. The project's own framing is direct about this: it finds that the model with better structural consistency, the ConvLSTM, outperforms in trading even when it is not always the single most accurate model on a point-by-point forecasting metric.</p>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">03 / Results</div><h2>Forecast quality translated into a trading outcome</h2></div>
+<div class="exhibit">
+<span class="exhibit-label">Backtested strangle strategy, 2004 to 2022</span>
+<table class="fin-table">
+<tr><th>Strategy</th><th>Annualised return</th><th>Sharpe ratio</th></tr>
+<tr class="total"><td>ConvLSTM-driven hedging</td><td>31.3%</td><td>1.37</td></tr>
+<tr><td>Rule-based, realised IV hedging</td><td>24.0%</td><td>0.96</td></tr>
+<tr><td>LSTM-Attention-driven hedging</td><td>22.2%</td><td>0.89</td></tr>
+</table>
+</div>
+<p class="case-lede">The ConvLSTM-driven strategy also showed the strongest resilience during high-VIX regimes, the exact conditions where a poorly hedged short-volatility book tends to lose the most. Evaluation went beyond raw Sharpe and return: MAE, RMSE, QLIKE, vega-weighted error, directional hit rate, and surface-shape diagnostics like skew and term-structure integrity were all checked, alongside attention-map interpretability to understand which historical windows the LSTM was actually weighting.</p>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">04 / Robustness</div><h2>Not a single lucky backtest window</h2></div>
+<div class="case-copy"><p>Results are validated with a walk-forward split rather than a single train-test divide, and stress-tested with stationary bootstrap resampling and sensitivity analysis across the stop-loss threshold, the VIX entry gate, hedge smoothing, and cost assumptions. Running the same comparison across many resampled paths and parameter choices, rather than reporting the single best-looking configuration, is what separates a strategy that is genuinely robust from one that was tuned to a specific backtest window.</p></div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">05 / What This Demonstrates</div><h2>Machine learning judged by P&amp;L, not just loss curves</h2></div>
+<div class="case-copy"><p>A forecasting model that never gets tested against a real trading outcome, with real hedging frictions and transaction costs, is an academic exercise. Wiring the ConvLSTM's surface forecasts directly into a delta-hedged strategy, comparing it honestly against a simpler rule-based benchmark, and finding that structural consistency beats pointwise accuracy is the kind of result that would actually inform a derivatives desk's model choice, not just a machine learning leaderboard.</p></div>
+<a class="button secondary" href="../../index.html#projects">← Back to coverage</a>
+</section>
+
+</div>
+</main>
+<footer class="footer container"><span>© <span id="year"></span> Bhavya Satija</span><span>Finance × Quant × Technology</span></footer>
+<script src="../../script.js"></script></body></html>

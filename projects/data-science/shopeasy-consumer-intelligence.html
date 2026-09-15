@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shopeasy Consumer Intelligence Platform | Bhavya Satija</title>
+<meta name="description" content="A dbt-modelled analytics engineering platform on the real Olist e-commerce dataset, with genuine NLP sentiment analysis and a 10-page dashboard.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,600;1,500;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<div id="scrollProgress"></div>
+<header class="nav-wrap"><nav class="nav container"><a class="brand" href="../../index.html">Bhavya Satija<span>.</span></a><div class="nav-links"><a href="../../index.html#projects">Coverage</a><a href="../../index.html#about">Background</a><a href="../../index.html#skills">Toolkit</a><a href="../../index.html#contact">Contact</a></div><a class="nav-cta" href="https://github.com/BhavyaSatija54" target="_blank">GitHub ↗</a></nav></header>
+<main>
+
+<section class="hero container">
+<div class="eyebrow">Financial &amp; Data Analytics</div>
+<h1 style="font-size:clamp(36px,5.4vw,64px);letter-spacing:-2px;margin:16px 0">Shopeasy Consumer <em>Intelligence</em></h1>
+<div class="hero-role">Built on 99,441 real orders, not simulated data, with a business story the data actually supports</div>
+<p class="hero-copy">This is the second version of this project. The first was built on synthetic data around a marketing funnel the dataset could never really support. This version is rebuilt from scratch on the real Olist Brazilian e-commerce dataset, with a warehouse designed before any code was written, and a business story, fulfillment, delivery, retention, and customer value, that the real data actually supports.</p>
+<div class="hero-actions"><a class="button primary" href="https://github.com/BhavyaSatija54/Shopeasy-Consumer-Intelligence" target="_blank">GitHub repository ↗</a><a class="button secondary" href="../../index.html#projects">← Back to coverage</a></div>
+</section>
+
+<div class="container">
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">01 / Snapshot</div><h2>The platform</h2></div>
+<div class="snapshot-table">
+<div class="snap-row"><span>Data</span><b>Real Olist dataset: 99,441 orders, 96,096 unique customers, 112,650 order items, 3,095 sellers</b></div>
+<div class="snap-row"><span>Pipeline</span><b>Python ELT into Postgres, dbt transforming staging into a proper star schema</b></div>
+<div class="snap-row"><span>Analytics</span><b>RFM segmentation, historical CLV, and cohort retention on the dataset's true person-level key</b></div>
+<div class="snap-row"><span>NLP</span><b>Real Portuguese-language sentiment analysis (LeIA, a VADER port) on actual review text</b></div>
+<div class="snap-row"><span>Dashboard</span><b>10 interactive pages, an executive summary plus 9 detail pages, each sourced from distinct marts</b></div>
+<div class="snap-row"><span>Testing</span><b>47 of 47 dbt data-quality tests passing, plus 12 automated Playwright UI tests</b></div>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">02 / A Warehouse Designed Before Any Code Was Written</div><h2>Getting the grain right, on the right key</h2></div>
+<div class="case-copy">
+<p>Customer analytics here are built on <code>customer_unique_id</code>, the dataset's actual person-level key, not the per-order <code>customer_id</code> that a naive build would silently misuse and that would make every repeat customer look like a first-time buyer. That single modelling decision is what makes the retention and lifetime-value numbers on this dashboard mean what they claim to mean.</p>
+<p>Every SQL model and its dbt equivalent were run against a live Postgres instance during development, including a case that caught and fixed a real join fan-out bug in seller performance scoring before it reached the dashboard. That is the difference between a report that was written and one that was tested.</p>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">03 / Honest About What The Data Supports</div><h2>Real findings, reported without rounding up</h2></div>
+<div class="exhibit">
+<table class="fin-table">
+<tr><td>Review score, on-time vs late delivery</td><td>4.30★ vs 2.56★</td></tr>
+<tr><td>Text-sentiment vs star-rating agreement</td><td>64.5%, across 40,659 reviews with text</td></tr>
+<tr><td>Reviews with text present</td><td>41.3% of the full dataset</td></tr>
+<tr><td>São Paulo state, live filter result</td><td>R$6.0M revenue, 41,752 orders, R$144 AOV, 4.18 avg review</td></tr>
+<tr class="total"><td>Data quality tests passing</td><td>47 of 47</td></tr>
+</table>
+</div>
+<div class="note-callout"><strong>Reported honestly, not rounded up</strong>The 64.5% sentiment-to-star agreement rate is presented as the real result, with the disagreement explained rather than hidden: lexicon-based sentiment methods miss implicit dissatisfaction, like a review saying an item "came incomplete" with no explicit negative sentiment words. A review-cardinality edge case the design anticipated, 547 orders with multiple reviews and 789 duplicate review IDs in the source data, was also confirmed as real rather than assumed away.</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">04 / Deliberate UX Decisions</div><h2>Controls that live where they act, not in a global filter bar</h2></div>
+<div class="case-copy"><p>A "Monthly versus Cumulative" toggle that only affects one chart has no business living in a filter bar that implies it controls everything on the page. Every control on this dashboard sits directly on the one chart it drives instead, the revenue toggle lives on the revenue trend card, the state filter lives on the revenue-by-state chart, and the count-versus-percent toggle lives on the RFM chart. It is a small decision, but it is the difference between a dashboard that behaves the way it looks like it should and one that quietly confuses whoever is using it.</p></div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">05 / What This Demonstrates</div><h2>An analyst who checks the data before trusting the story</h2></div>
+<div class="case-copy"><p>The most telling decision in this project is what it does not claim. The original synthetic-data version of this platform was built around a marketing funnel this dataset has no clickstream to support, and rather than keep that story and paper over the gap with invented numbers, this version was rebuilt around the fulfillment, delivery, and retention story the real data actually tells. That willingness to let the data decide the analysis, rather than the other way around, is the core skill a financial or data analyst role is actually testing for.</p></div>
+<a class="button secondary" href="../../index.html#projects">← Back to coverage</a>
+</section>
+
+</div>
+</main>
+<footer class="footer container"><span>© <span id="year"></span> Bhavya Satija</span><span>Finance × Quant × Technology</span></footer>
+<script src="../../script.js"></script></body></html>
