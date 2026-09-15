@@ -1,0 +1,87 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfolio Risk Engine, Market Risk Case Study | Bhavya Satija</title>
+<meta name="description" content="A Value at Risk engine covering Historical, Parametric and Monte Carlo methodologies, GARCH(1,1) volatility, and full Basel-style backtesting.">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,600;1,500;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<div id="scrollProgress"></div>
+<header class="nav-wrap"><nav class="nav container"><a class="brand" href="../../index.html">Bhavya Satija<span>.</span></a><div class="nav-links"><a href="../../index.html#projects">Coverage</a><a href="../../index.html#about">Background</a><a href="../../index.html#skills">Toolkit</a><a href="../../index.html#contact">Contact</a></div><a class="nav-cta" href="https://github.com/BhavyaSatija54" target="_blank">GitHub ↗</a></nav></header>
+<main>
+
+<section class="hero container">
+<div class="eyebrow">Market Risk Analytics</div>
+<h1 style="font-size:clamp(36px,5.4vw,64px);letter-spacing:-2px;margin:16px 0">Portfolio <em>Risk Engine</em></h1>
+<div class="hero-role">Three VaR methodologies, GARCH volatility, and Basel-style backtesting on one framework</div>
+<p class="hero-copy">A market risk desk does not trust a single VaR number. It wants the same book measured three different ways, a volatility model that adapts when markets get choppy, and a backtest that tells you honestly when the model has stopped working. This project builds all three as a single, tested Python framework rather than a one-off notebook.</p>
+<div class="hero-actions"><a class="button primary" href="https://github.com/BhavyaSatija54/Portfolio-Risk-Engine" target="_blank">GitHub repository ↗</a><a class="button secondary" href="../../index.html#projects">← Back to coverage</a></div>
+</section>
+
+<div class="container">
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">01 / Snapshot</div><h2>What the engine does</h2></div>
+<div class="snapshot-table">
+<div class="snap-row"><span>VaR methods</span><b>Historical (non-parametric), Parametric (normal, EWMA, GARCH), Monte Carlo (Cholesky)</b></div>
+<div class="snap-row"><span>Volatility model</span><b>GARCH(1,1) with rolling re-estimation for time-varying risk</b></div>
+<div class="snap-row"><span>Backtesting</span><b>Kupiec POF test, Christoffersen independence test, Basel traffic-light framework</b></div>
+<div class="snap-row"><span>Tail-risk output</span><b>Expected Shortfall / CVaR alongside every VaR estimate</b></div>
+<div class="snap-row"><span>Data</span><b>Live multi-asset data from Yahoo Finance</b></div>
+<div class="snap-row"><span>Delivery</span><b>Installable Python package, Streamlit dashboard, Jupyter demo notebook</b></div>
+<div class="snap-row"><span>Validation</span><b>Full pytest suite plus a CI pipeline (lint, format, test across Python 3.9 to 3.12)</b></div>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">02 / Why Three Methods, Not One</div><h2>Each VaR method fails differently</h2></div>
+<div class="case-copy">
+<p>Historical VaR needs no distributional assumption and naturally captures fat tails, but it only knows about scenarios that have already happened in the lookback window. Parametric VaR is fast and easy to explain to a committee, but the normal-distribution assumption underestimates tail risk unless it is paired with a volatility model that can react to changing conditions. Monte Carlo VaR, built here with a Cholesky decomposition of the covariance matrix, can simulate scenarios that never occurred historically and preserves the correlation structure across assets, at the cost of being the most computationally expensive and the most sensitive to a badly estimated covariance matrix.</p>
+<p>A market risk desk runs all three side by side precisely because they disagree in informative ways. When Historical and Monte Carlo VaR diverge sharply, that is usually a signal that the recent historical window does not represent current market conditions, which is exactly the kind of thing a risk manager needs flagged rather than averaged away.</p>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">03 / Methodology</div><h2>How each VaR method is built</h2></div>
+<div class="exhibit">
+<span class="exhibit-label">VaR formulas implemented</span>
+<table class="fin-table">
+<tr><th>Method</th><th>Formula</th><th>Key property</th></tr>
+<tr><td>Historical</td><td>VaR = |percentile(returns, α)|</td><td>No distributional assumption, bootstrap confidence intervals</td></tr>
+<tr><td>Parametric</td><td>VaR = Z_α × σ × √h</td><td>σ can be standard, EWMA (λ=0.94), or GARCH-forecast</td></tr>
+<tr><td>Monte Carlo</td><td>r_sim = μ + L·z, where Σ = L·Lᵀ</td><td>100,000 simulations, full correlation via Cholesky</td></tr>
+</table>
+</div>
+<div class="exhibit">
+<span class="exhibit-label">GARCH(1,1) specification</span>
+<table class="fin-table">
+<tr><td>Model</td><td>σ²_t = ω + α·ε²_{t-1} + β·σ²_{t-1}</td></tr>
+<tr><td>Stationarity condition</td><td>α + β &lt; 1</td></tr>
+<tr><td>Unconditional variance</td><td>σ² = ω / (1 − α − β)</td></tr>
+<tr><td>Half-life</td><td>τ = −ln(2) / ln(α + β)</td></tr>
+</table>
+</div>
+<p class="case-lede">Fitting a GARCH model rather than using a flat historical standard deviation is what lets the parametric VaR estimate widen automatically during a volatility cluster and narrow again once markets calm, instead of lagging the true risk by an entire lookback window.</p>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">04 / Backtesting Framework</div><h2>Proving the model works, not just running it</h2></div>
+<div class="case-copy"><p>A VaR model that has never been backtested is a guess with decimal places. This engine implements the two tests regulators actually use. The Kupiec Proportion of Failures test checks whether the observed rate of VaR breaches matches the expected rate at the chosen confidence level. The Christoffersen independence test goes further and checks whether breaches cluster together in time, since a model that breaches randomly 5% of the time is well calibrated, but one where all the breaches happen in the same volatile month is not, even if the overall count looks correct.</p></div>
+<div class="exhibit">
+<span class="exhibit-label">Basel traffic-light framework</span>
+<table class="fin-table">
+<tr><th>Zone</th><th>Condition</th><th>Action</th></tr>
+<tr><td>Green</td><td>Model acceptable</td><td>Continue using</td></tr>
+<tr><td>Yellow</td><td>Model needs review</td><td>Investigate and enhance</td></tr>
+<tr><td>Red</td><td>Model unacceptable</td><td>Immediate remediation required</td></tr>
+</table>
+</div>
+</section>
+
+<section class="case-section">
+<div class="case-head"><div class="eyebrow">05 / What This Demonstrates</div><h2>The skill a market risk desk is actually hiring for</h2></div>
+<div class="case-copy"><p>Building a VaR calculator is a tutorial exercise. Building three VaR calculators that disagree in informative ways, wiring in a volatility model that adapts to regime changes, and then subjecting every output to a formal statistical backtest against a regulatory framework is the difference between a risk analyst who reports a number and one who can defend it in a model validation review. That is the standard this engine is built to.</p></div>
+<a class="button secondary" href="../../index.html#projects">← Back to coverage</a>
+</section>
+
+</div>
+</main>
+<footer class="footer container"><span>© <span id="year"></span> Bhavya Satija</span><span>Finance × Quant × Technology</span></footer>
+<script src="../../script.js"></script></body></html>
